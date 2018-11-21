@@ -8,9 +8,12 @@ const { Todo }      = require('../models/todo');
 const todos = [{
   _id: new ObjectID(),
   text: 'First test todo',
+  completed: false,
 },{
   _id: new ObjectID(),
   text: 'Second test todo',
+  completed: true,
+  completedAt: new Date().getTime(),
 }];
 
 beforeEach((done) => {
@@ -130,6 +133,84 @@ describe('DELETE /todos/:id', () => {
   it('should return 404 for non-object ids', (done) => {
     request(app)
       .delete('/todos/123')
+      .expect(404)
+      .end(done);
+  })
+});
+
+describe('PATCH /todos/:id', () => {
+  it('should update the todo', (done) => {
+    const id = todos[0]._id.toHexString();
+    const updates = {
+      completed: true,
+      text: 'test',
+    }
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(updates)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo._id).toBe(id);
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        Todo.findById(id).then((todo) => {
+          expect(todo.completed).toBe(updates.completed);
+          expect(todo.text).toBe(updates.text);
+          expect(typeof todo.completedAt).toBe('number');
+          done();
+        }).catch((e) => done(e));
+      });
+  });
+
+  it('should clear completedAt when todo is not completed', (done) => {
+    const id = todos[1]._id.toHexString();
+    const updates = {
+      completed: false,
+      text: 'test',
+    }
+    request(app)
+      .patch(`/todos/${id}`)
+      .send(updates)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo._id).toBe(id);
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        Todo.findById(id).then((todo) => {
+          expect(todo.completed).toBe(updates.completed);
+          expect(todo.text).toBe(updates.text);
+          expect(todo.completedAt).toBe(null);
+          done();
+        }).catch((e) => done(e));
+      });
+  });
+
+  it('should return 404 if todo not found', (done) => {
+    const updates = {
+      completed: true,
+      text: 'test',
+    }
+    request(app)
+      .patch(`/todos/${(new ObjectID()).toHexString()}`)
+      .send(updates)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return 404 for non-object ids', (done) => {
+    const updates = {
+      completed: true,
+      text: 'test',
+    }
+    request(app)
+      .patch('/todos/123')
+      .send(updates)
       .expect(404)
       .end(done);
   })
