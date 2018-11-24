@@ -58,7 +58,7 @@ UserSchema.methods.generateAuthToken = function () {
 UserSchema.methods.removeToken = function (token) {
   const user = this;
 
-  return user.update({
+  return user.replaceOne({ _id: user._id },{
     $pull: {
       tokens: { token },
     },
