@@ -4,15 +4,20 @@ const jwt           = require('jsonwebtoken');
 const { Todo }      = require('../../models/todo');
 const { User }      = require('../../models/user');
 
+const userOneId = new ObjectID();
+const userTwoId = new ObjectID();
+
 const todos = [{
   _id: new ObjectID(),
   text: 'First test todo',
   completed: false,
+  _creator: userOneId,
 },{
   _id: new ObjectID(),
   text: 'Second test todo',
   completed: true,
   completedAt: new Date().getTime(),
+  _creator: userTwoId,
 }];
 
 const populateTodos = (done) => {
@@ -21,8 +26,6 @@ const populateTodos = (done) => {
   }).then(() => done());
 };
 
-const userOneId = new ObjectID();
-const userTwoId = new ObjectID();
 const users = [{
   _id: userOneId,
   email: 'chris1@email.com',
